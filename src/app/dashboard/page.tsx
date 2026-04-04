@@ -7,6 +7,26 @@ import { modules, isModuleUnlocked } from '@/data/modules';
 import { getLessonById, getModuleForLesson } from '@/src/data/lessons';
 import { lessonSummaries } from '@/data/lessons';
 
+async function fetchAIInsights(context: string): Promise<string> {
+  const res = await fetch('/api/analyze', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ type: 'insights', context }),
+  });
+  const data = (await res.json()) as { result: string };
+  return data.result;
+}
+
+async function fetchRecommendations(context: string): Promise<string> {
+  const res = await fetch('/api/analyze', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ type: 'recommendations', context }),
+  });
+  const data = (await res.json()) as { result: string };
+  return data.result;
+}
+
 const MODULE_DIFFICULTY: Record<number, string> = {
   1: 'Beginner',
   2: 'Intermediate',
@@ -28,6 +48,9 @@ export default function DashboardPage() {
   const [progress] = useState(() => getProgress());
   const [courseProgress] = useState(() => getCourseProgress());
   const [currentLesson] = useState(() => getCurrentLesson());
+  const [aiInsight, setAiInsight] = useState('');
+  const [aiRecommendation, setAiRecommendation] = useState('');
+  const [loadingInsights, setLoadingInsights] = useState(false);
 
   const completedLessonIds: number[] = Object.entries(progress.lessons)
     .filter(([, v]) => v.status === 'complete')
@@ -74,6 +97,24 @@ export default function DashboardPage() {
     .slice(0, 4);
 
   const lessonsRemaining = 20 - lessonsDoneCount;
+
+  const handleGetInsights = async () => {
+    setLoadingInsights(true);
+    setAiInsight('');
+    setAiRecommendation('');
+    const context = `Lessons completed: ${lessonsDoneCount}/20. Course progress: ${courseProgress}%. Quiz average: ${quizAvg ?? 'N/A'}%. Day streak: ${streakCount}. Completed lesson IDs: ${completedLessonIds.join(', ') || 'none yet'}.`;
+    try {
+      const [insight, recommendation] = await Promise.all([
+        fetchAIInsights(context),
+        fetchRecommendations(context),
+      ]);
+      setAiInsight(insight);
+      setAiRecommendation(recommendation);
+    } catch {
+      setAiInsight('Unable to load insights. Make sure ANTHROPIC_API_KEY is configured.');
+    }
+    setLoadingInsights(false);
+  };
 
   const statCards = [
     { value: `${lessonsDoneCount}/20`, label: 'Lessons Done' },
@@ -537,6 +578,135 @@ export default function DashboardPage() {
 
         {/* ── Sidebar ── */}
         <aside className="w-full lg:w-72 shrink-0 space-y-5">
+          {/* AI Insights */}
+          <div
+            className="p-5"
+            style={{
+              backgroundColor: '#fff',
+              border: 'var(--border)',
+              borderRadius: 'var(--radius-lg)',
+            }}
+          >
+            <h3
+              style={{
+                fontFamily: 'var(--font-display)',
+                fontSize: 14,
+                fontWeight: 600,
+                color: 'var(--color-ink)',
+                marginBottom: 8,
+              }}
+            >
+              ✦ AI Insights
+            </h3>
+            {!aiInsight && !loadingInsights && (
+              <>
+                <p
+                  style={{
+                    fontFamily: 'var(--font-body)',
+                    fontSize: 12,
+                    color: 'var(--color-secondary)',
+                    marginBottom: 10,
+                    lineHeight: 1.5,
+                  }}
+                >
+                  Get a personalized analysis of your learning progress and what to focus on next.
+                </p>
+                <button
+                  onClick={handleGetInsights}
+                  style={{
+                    fontFamily: 'var(--font-body)',
+                    fontSize: 12,
+                    fontWeight: 600,
+                    color: '#fff',
+                    backgroundColor: 'var(--color-coral)',
+                    border: 'none',
+                    borderRadius: 'var(--radius-sm)',
+                    padding: '7px 14px',
+                    cursor: 'pointer',
+                  }}
+                >
+                  Generate Insights
+                </button>
+              </>
+            )}
+            {loadingInsights && (
+              <div className="space-y-2 mt-1">
+                {[90, 70, 80, 55].map((w, i) => (
+                  <div
+                    key={i}
+                    style={{
+                      height: 10,
+                      width: `${w}%`,
+                      borderRadius: 5,
+                      backgroundColor: 'var(--color-sand)',
+                      animation: 'pulse 1.5s ease-in-out infinite',
+                    }}
+                  />
+                ))}
+              </div>
+            )}
+            {aiInsight && !loadingInsights && (
+              <div className="space-y-3">
+                <p
+                  style={{
+                    fontFamily: 'var(--font-body)',
+                    fontSize: 12,
+                    color: 'var(--color-body)',
+                    lineHeight: 1.6,
+                  }}
+                >
+                  {aiInsight}
+                </p>
+                {aiRecommendation && (
+                  <div
+                    style={{
+                      padding: '8px 10px',
+                      backgroundColor: 'var(--color-coral-light)',
+                      borderRadius: 'var(--radius-sm)',
+                      borderLeft: '3px solid var(--color-coral)',
+                    }}
+                  >
+                    <p
+                      style={{
+                        fontFamily: 'var(--font-body)',
+                        fontSize: 11,
+                        fontWeight: 700,
+                        color: 'var(--color-coral)',
+                        marginBottom: 3,
+                      }}
+                    >
+                      FOCUS NEXT
+                    </p>
+                    <p
+                      style={{
+                        fontFamily: 'var(--font-body)',
+                        fontSize: 12,
+                        color: 'var(--color-body)',
+                        lineHeight: 1.5,
+                      }}
+                    >
+                      {aiRecommendation}
+                    </p>
+                  </div>
+                )}
+                <button
+                  onClick={handleGetInsights}
+                  style={{
+                    fontFamily: 'var(--font-body)',
+                    fontSize: 11,
+                    color: 'var(--color-hint)',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    padding: 0,
+                  }}
+                >
+                  Refresh ↻
+                </button>
+              </div>
+            )}
+          </div>
+
           {/* Streak Calendar */}
           <div
             className="p-5"

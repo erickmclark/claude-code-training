@@ -8,6 +8,7 @@ import LessonSidebar from './LessonSidebar';
 import StepContent from './StepContent';
 import BeginnerQuiz from '@/src/components/quiz/BeginnerQuiz';
 import PracticeExercise from './PracticeExercise';
+import LessonComplete from './LessonComplete';
 import ChatWidget from '@/src/components/chat/ChatWidget';
 
 interface LessonPageProps {
@@ -24,6 +25,7 @@ export default function LessonPage({ lessonId }: LessonPageProps) {
     if (typeof window === 'undefined') return [];
     return getLessonProgress(lessonId).stepsCompleted;
   });
+  const [exerciseDone, setExerciseDone] = useState(false);
 
   if (!lesson) {
     return (
@@ -72,6 +74,7 @@ export default function LessonPage({ lessonId }: LessonPageProps) {
 
   const handleExerciseComplete = () => {
     markLessonComplete(lessonId, 0);
+    setExerciseDone(true);
   };
 
   return (
@@ -159,10 +162,20 @@ export default function LessonPage({ lessonId }: LessonPageProps) {
           )}
 
           {activeSection === 'exercise' && lesson.exercise && (
-            <PracticeExercise
-              exercise={lesson.exercise}
-              onComplete={handleExerciseComplete}
-            />
+            <div>
+              <PracticeExercise
+                exercise={lesson.exercise}
+                onComplete={handleExerciseComplete}
+              />
+              {exerciseDone && (
+                <LessonComplete
+                  lessonId={String(lessonId)}
+                  lessonTitle={lesson.title}
+                  moduleTitle={mod?.title ?? ''}
+                  exerciseDescription={lesson.exercise.title}
+                />
+              )}
+            </div>
           )}
         </main>
       </div>

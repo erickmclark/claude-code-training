@@ -1,0 +1,4 @@
+- [BeginnerQuiz shape](beginner_quiz_shape.md) — Props, state, and key patterns in BeginnerQuiz.tsx
+- [userLevel storage](user_level_storage.md) — How userLevel is stored and retrieved from localStorage
+- [API route pattern](api_route_pattern.md) — How src/app/api routes are structured and bridged
+- [Implementation gotchas](implementation_gotchas.md) — Gotchas discovered during adaptive explanation implementation

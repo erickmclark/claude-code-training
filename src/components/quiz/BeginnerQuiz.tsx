@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import type { QuizQuestion } from '@/types/lesson';
+import { getProgress } from '@/src/lib/progress';
 
 interface BeginnerQuizProps {
   questions: QuizQuestion[];
@@ -10,12 +11,30 @@ interface BeginnerQuizProps {
 
 const LETTERS = ['A', 'B', 'C', 'D'];
 
+const LEVEL_MAP: Record<string, string> = {
+  A: 'beginner',
+  B: 'intermediate',
+  C: 'advanced',
+};
+
+function resolveUserLevel(): string {
+  if (typeof window === 'undefined') return 'beginner';
+  try {
+    const progress = getProgress();
+    return progress.userLevel ? (LEVEL_MAP[progress.userLevel] ?? 'beginner') : 'beginner';
+  } catch {
+    return 'beginner';
+  }
+}
+
 export default function BeginnerQuiz({ questions, onComplete }: BeginnerQuizProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [showFeedback, setShowFeedback] = useState(false);
   const [correctCount, setCorrectCount] = useState(0);
   const [finished, setFinished] = useState(false);
+  const [loadingExplanation, setLoadingExplanation] = useState(false);
+  const [adaptedExplanation, setAdaptedExplanation] = useState<string | null>(null);
 
   const question = questions[currentIndex];
   const isCorrect = selectedAnswer === question?.correctIndex;
@@ -26,6 +45,33 @@ export default function BeginnerQuiz({ questions, onComplete }: BeginnerQuizProp
     setShowFeedback(true);
     if (index === question.correctIndex) {
       setCorrectCount((c) => c + 1);
+    } else {
+      // Wrong answer: fetch adaptive explanation
+      const correctAnswerText = question.options[question.correctIndex] ?? '';
+      const userLevel = resolveUserLevel();
+      setLoadingExplanation(true);
+      fetch('/api/agents/explain', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          originalExplanation: question.explanation,
+          question: question.question,
+          correctAnswer: correctAnswerText,
+          userLevel,
+        }),
+      })
+        .then((res) => res.json())
+        .then((data: { explanation?: string }) => {
+          if (data.explanation) {
+            setAdaptedExplanation(data.explanation);
+          }
+        })
+        .catch(() => {
+          // Fall back to static explanation silently
+        })
+        .finally(() => {
+          setLoadingExplanation(false);
+        });
     }
   };
 
@@ -37,6 +83,7 @@ export default function BeginnerQuiz({ questions, onComplete }: BeginnerQuizProp
       setCurrentIndex((i) => i + 1);
       setSelectedAnswer(null);
       setShowFeedback(false);
+      setAdaptedExplanation(null);
     }
   };
 
@@ -46,6 +93,7 @@ export default function BeginnerQuiz({ questions, onComplete }: BeginnerQuizProp
     setShowFeedback(false);
     setCorrectCount(0);
     setFinished(false);
+    setAdaptedExplanation(null);
   };
 
   if (finished) {
@@ -190,9 +238,42 @@ export default function BeginnerQuiz({ questions, onComplete }: BeginnerQuizProp
           <p className="text-sm font-semibold mb-1" style={{ color: isCorrect ? 'var(--color-coral-dark)' : '#dc2626' }}>
             {isCorrect ? '✓ Correct!' : '✗ Not quite'}
           </p>
-          <p className="text-sm" style={{ color: 'var(--color-body)', fontFamily: 'var(--font-body)', lineHeight: 1.6 }}>
-            {question.explanation}
-          </p>
+          {loadingExplanation ? (
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                marginTop: '4px',
+              }}
+            >
+              <span
+                style={{
+                  display: 'inline-block',
+                  width: '10px',
+                  height: '10px',
+                  borderRadius: '50%',
+                  backgroundColor: 'var(--color-coral)',
+                  animation: 'pulse 1.4s ease-in-out infinite',
+                  opacity: 0.7,
+                }}
+              />
+              <span
+                style={{
+                  fontSize: '13px',
+                  color: 'var(--color-hint)',
+                  fontFamily: 'var(--font-body)',
+                }}
+              >
+                Personalizing explanation...
+              </span>
+              <style>{`@keyframes pulse { 0%, 100% { opacity: 0.3; } 50% { opacity: 1; } }`}</style>
+            </div>
+          ) : (
+            <p className="text-sm" style={{ color: 'var(--color-body)', fontFamily: 'var(--font-body)', lineHeight: 1.6 }}>
+              {adaptedExplanation ?? question.explanation}
+            </p>
+          )}
         </div>
       )}
 

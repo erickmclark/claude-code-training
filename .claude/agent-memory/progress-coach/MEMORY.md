@@ -1,0 +1,1 @@
+- [Progress Coach feature](progress_coach_feature.md) — Implemented AI-powered lesson completion coaching with Haiku, wired into LessonPage exercise flow
