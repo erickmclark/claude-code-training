@@ -1,36 +1,96 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Claude Code Training Platform
 
-## Getting Started
+Interactive hands-on training platform for mastering Claude Code techniques from Boris Cherny's methods.
 
-First, run the development server:
+## Canonical Project Location
+
+**Use this folder only:**
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+/Users/erick/claude-code-training
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Do **not** run or edit the stale duplicate under:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+/Users/erick/.openclaw/workspace/ventures/claude-code-training
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+That duplicate caused server drift and agent confusion.
 
-## Learn More
+## Root Cause of Prior Failures
 
-To learn more about Next.js, take a look at the following resources:
+The app itself was not broken. The real issue was **project duplication + dev server drift**:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+- one Claude/agent run edited one copy of the project
+- localhost was serving a different copy
+- stray Next.js dev servers were still running
+- this made it look like the agent was failing when the wrong app was actually being served
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Symptoms
 
-## Deploy on Vercel
+- localhost showed older or unexpected UI
+- agent changes seemed to "not appear"
+- inconsistent routes/features between runs
+- intermittent confusion about whether Claude Code actually completed work
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### Prevention Rules
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. **Single canonical folder only**
+   - Always use `/Users/erick/claude-code-training`
+   - Never build from both folders
+
+2. **Single dev server only**
+   - Before starting, kill any old Next.js servers for this project
+   - Run only one `npm run dev` instance
+
+3. **Verify served folder before debugging**
+   - Confirm the running process points to the same folder you’re editing
+
+4. **Build-check after agent runs**
+   - Run:
+     ```bash
+     npm run build
+     ```
+   - If build passes, issue is likely process/path related, not code failure
+
+5. **Prefer one persistent Claude session per project**
+   - avoid spawning many overlapping one-shot sessions that edit different copies or assumptions
+
+## Development
+
+### Start clean
+
+```bash
+pkill -f '/Users/erick/claude-code-training/node_modules/.bin/next dev' || true
+cd /Users/erick/claude-code-training
+npm run dev
+```
+
+### Open locally
+
+```bash
+http://localhost:3000
+```
+
+### Verify production build
+
+```bash
+cd /Users/erick/claude-code-training
+npm run build
+```
+
+## Current Feature Set
+
+- interactive lesson pages
+- practice sessions with guided feedback
+- quizzes
+- module exams
+- capstone projects
+- certificate flow
+- dashboard and supporting pages
+
+## Notes
+
+- Updated for Next.js 16 by switching deprecated `middleware.ts` convention to `proxy.ts`
+- If localhost looks wrong again, first check for duplicate dev servers and duplicate project folders

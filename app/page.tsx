@@ -1,199 +1,341 @@
-import Link from 'next/link';
+'use client';
 
-const lessons = [
-  {
-    id: 1,
-    title: 'Parallel Execution',
-    description: 'Run 5+ Claude Code sessions simultaneously',
-    icon: '⚡',
-    difficulty: 'Beginner',
-    duration: '15 min',
-  },
-  {
-    id: 2,
-    title: 'Plan Mode Mastery',
-    description: 'Build perfect plans before coding',
-    icon: '📋',
-    difficulty: 'Beginner',
-    duration: '10 min',
-  },
-  {
-    id: 3,
-    title: 'CLAUDE.md Files',
-    description: 'Teach Claude not to repeat mistakes',
-    icon: '📝',
-    difficulty: 'Beginner',
-    duration: '12 min',
-  },
-  {
-    id: 4,
-    title: 'Git Worktrees',
-    description: 'Isolated parallel work without conflicts',
-    icon: '🌳',
-    difficulty: 'Intermediate',
-    duration: '20 min',
-  },
-  {
-    id: 5,
-    title: 'Voice Dictation',
-    description: 'Speak 3x faster than typing',
-    icon: '🎤',
-    difficulty: 'Beginner',
-    duration: '5 min',
-  },
-  {
-    id: 6,
-    title: 'Verification Loops',
-    description: 'Give Claude a way to test its work',
-    icon: '✅',
-    difficulty: 'Intermediate',
-    duration: '15 min',
-  },
-  {
-    id: 7,
-    title: '/batch Parallelization',
-    description: 'Spawn 10+ subagents for big tasks',
-    icon: '🚀',
-    difficulty: 'Advanced',
-    duration: '25 min',
-  },
-  {
-    id: 8,
-    title: 'Custom Agents',
-    description: 'Create specialized agents for specific work',
-    icon: '🤖',
-    difficulty: 'Advanced',
-    duration: '20 min',
-  },
-  {
-    id: 9,
-    title: 'Slash Commands',
-    description: 'Keyboard shortcuts for common tasks',
-    icon: '⌨️',
-    difficulty: 'Intermediate',
-    duration: '12 min',
-  },
-  {
-    id: 10,
-    title: 'Hooks & Automation',
-    description: 'Run code at lifecycle events',
-    icon: '🔗',
-    difficulty: 'Advanced',
-    duration: '20 min',
-  },
-  {
-    id: 11,
-    title: 'Mobile Control',
-    description: 'Code from anywhere on your phone',
-    icon: '📱',
-    difficulty: 'Intermediate',
-    duration: '10 min',
-  },
-  {
-    id: 12,
-    title: 'Advanced Mastery',
-    description: 'Combine all techniques for 10x productivity',
-    icon: '🏆',
-    difficulty: 'Expert',
-    duration: '30 min',
-  },
-];
+import Link from 'next/link';
+import { useState } from 'react';
+import { getProgress } from '@/utils/progress';
+import { lessonSummaries } from '@/data/lessons';
+import { modules } from '@/data/modules';
 
 export default function Home() {
+  const [progress] = useState(() => {
+    if (typeof window === 'undefined') return null;
+    return getProgress();
+  });
+
+  const isComplete = (id: number) => progress?.lessons[id]?.completed;
+  const completedCount = progress
+    ? Object.values(progress.lessons).filter((l) => l.completed).length
+    : 0;
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
-      <nav className="border-b border-slate-700 bg-slate-900/80 backdrop-blur">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between">
-            <h1 className="text-2xl font-bold text-white">Claude Code Mastery</h1>
-            <div className="text-sm text-slate-400">Learn from Boris Cherny's techniques</div>
-          </div>
+    <div style={{ backgroundColor: 'var(--color-cream)', minHeight: '100vh' }}>
+      {/* Nav */}
+      <nav
+        className="sticky top-0 z-10 px-6 py-4"
+        style={{
+          backgroundColor: 'var(--color-cream)',
+          borderBottom: 'var(--border)',
+        }}
+      >
+        <div className="max-w-5xl mx-auto flex items-center justify-between">
+          <h1
+            className="text-xl font-bold"
+            style={{ fontFamily: 'var(--font-display)', color: 'var(--color-ink)' }}
+          >
+            Claude Code Mastery
+          </h1>
+          <span className="text-xs" style={{ color: 'var(--color-hint)', fontFamily: 'var(--font-body)' }}>
+            Based on Boris Cherny&apos;s techniques
+          </span>
         </div>
       </nav>
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Hero Section */}
-        <div className="mb-12">
-          <h2 className="text-4xl font-bold text-white mb-4">Interactive Training Platform</h2>
-          <p className="text-xl text-slate-300 mb-8">
-            Master the techniques that Boris Cherny uses to build 10x faster with Claude Code.
-            Learn hands-on with real examples from NightPivot.
+      <main className="max-w-5xl mx-auto px-6 py-12">
+        {/* Hero */}
+        <section className="mb-16 text-center">
+          <h2
+            className="text-4xl md:text-5xl font-bold mb-4"
+            style={{ fontFamily: 'var(--font-display)', color: 'var(--color-ink)', lineHeight: 1.2 }}
+          >
+            Master Claude Code
+          </h2>
+          <p
+            className="text-lg mb-10 max-w-xl mx-auto"
+            style={{ fontFamily: 'var(--font-body)', color: 'var(--color-secondary)', lineHeight: 1.6 }}
+          >
+            20 interactive lessons to build 10x faster. Learn the techniques that top engineers use every day.
           </p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-            <div className="bg-slate-700/50 rounded-lg p-4 border border-slate-600">
-              <div className="text-3xl font-bold text-blue-400">12</div>
-              <div className="text-slate-300">Interactive Lessons</div>
-            </div>
-            <div className="bg-slate-700/50 rounded-lg p-4 border border-slate-600">
-              <div className="text-3xl font-bold text-green-400">2.5h</div>
-              <div className="text-slate-300">Total Time to Master</div>
-            </div>
-            <div className="bg-slate-700/50 rounded-lg p-4 border border-slate-600">
-              <div className="text-3xl font-bold text-purple-400">10x</div>
-              <div className="text-slate-300">Speed Improvement</div>
-            </div>
-          </div>
-        </div>
 
-        {/* Learning Path */}
-        <div className="mb-12">
-          <h3 className="text-2xl font-bold text-white mb-6">Learning Paths</h3>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          {/* Stats */}
+          <div className="flex justify-center gap-6 mb-10">
             {[
-              { path: 'Beginner', lessons: '1, 2, 3', color: 'blue' },
-              { path: 'Intermediate', lessons: '4, 5, 6, 9, 11', color: 'green' },
-              { path: 'Advanced', lessons: '7, 8, 10', color: 'purple' },
-              { path: 'Mastery', lessons: 'All + Projects', color: 'amber' },
-            ].map((item) => (
+              { value: '20', label: 'Lessons' },
+              { value: '4', label: 'Modules' },
+              { value: '10x', label: 'Faster' },
+            ].map((s) => (
               <div
-                key={item.path}
-                className={`rounded-lg p-4 border-2 border-${item.color}-500/30 bg-${item.color}-500/10`}
+                key={s.label}
+                className="px-6 py-4"
+                style={{
+                  border: 'var(--border)',
+                  borderRadius: 'var(--radius-lg)',
+                  backgroundColor: '#fff',
+                }}
               >
-                <h4 className={`font-bold text-${item.color}-400 mb-2`}>{item.path}</h4>
-                <p className="text-sm text-slate-300">{item.lessons}</p>
+                <div
+                  className="text-2xl font-bold"
+                  style={{ fontFamily: 'var(--font-display)', color: 'var(--color-coral)' }}
+                >
+                  {s.value}
+                </div>
+                <div className="text-xs" style={{ color: 'var(--color-hint)', fontFamily: 'var(--font-body)' }}>
+                  {s.label}
+                </div>
               </div>
             ))}
           </div>
-        </div>
 
-        {/* Lessons Grid */}
-        <div className="mb-12">
-          <h3 className="text-2xl font-bold text-white mb-6">Lessons</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {lessons.map((lesson) => (
-              <Link key={lesson.id} href={`/lessons/${lesson.id}`}>
-                <div className="group cursor-pointer bg-slate-700/50 rounded-lg p-6 border border-slate-600 hover:border-blue-500 hover:bg-slate-700/80 transition-all">
-                  <div className="text-4xl mb-4">{lesson.icon}</div>
-                  <h4 className="text-xl font-bold text-white mb-2 group-hover:text-blue-400">
-                    {lesson.title}
-                  </h4>
-                  <p className="text-slate-300 mb-4">{lesson.description}</p>
-                  <div className="flex justify-between items-center text-sm">
-                    <span className={`px-3 py-1 rounded-full ${
-                      lesson.difficulty === 'Beginner' ? 'bg-green-500/20 text-green-300' :
-                      lesson.difficulty === 'Intermediate' ? 'bg-yellow-500/20 text-yellow-300' :
-                      'bg-red-500/20 text-red-300'
-                    }`}>
-                      {lesson.difficulty}
-                    </span>
-                    <span className="text-slate-400">{lesson.duration}</span>
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-
-        {/* CTA */}
-        <div className="text-center py-12 border-t border-slate-700">
-          <h3 className="text-2xl font-bold text-white mb-4">Ready to Build 10x Faster?</h3>
-          <p className="text-slate-300 mb-6">Start with Lesson 1 and master Claude Code in 2.5 hours</p>
-          <Link href="/lessons/1">
-            <button className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg transition-colors">
+          {/* CTA */}
+          <div className="flex justify-center gap-3">
+            <Link
+              href="/lessons/1"
+              className="px-7 py-3 text-sm font-semibold"
+              style={{
+                backgroundColor: 'var(--color-coral)',
+                color: '#fff',
+                borderRadius: 'var(--radius-md)',
+                fontFamily: 'var(--font-body)',
+              }}
+            >
               Start Learning →
-            </button>
+            </Link>
+            <Link
+              href="/getting-started"
+              className="px-7 py-3 text-sm font-semibold"
+              style={{
+                border: 'var(--border)',
+                borderRadius: 'var(--radius-md)',
+                color: 'var(--color-secondary)',
+                fontFamily: 'var(--font-body)',
+              }}
+            >
+              Install Claude Code
+            </Link>
+          </div>
+        </section>
+
+        {/* Progress bar */}
+        <section
+          className="mb-16 p-6"
+          style={{
+            backgroundColor: '#fff',
+            border: 'var(--border)',
+            borderRadius: 'var(--radius-lg)',
+          }}
+        >
+          <div className="flex items-center justify-between mb-3">
+            <span
+              className="text-sm font-semibold"
+              style={{ fontFamily: 'var(--font-display)', color: 'var(--color-ink)' }}
+            >
+              Your Progress
+            </span>
+            <span
+              className="text-sm font-bold"
+              style={{ color: 'var(--color-coral)', fontFamily: 'var(--font-body)' }}
+            >
+              {completedCount}/20
+            </span>
+          </div>
+          <div
+            className="w-full h-2"
+            style={{ backgroundColor: 'var(--color-sand)', borderRadius: 'var(--radius-full)' }}
+          >
+            <div
+              className="h-full transition-all duration-500"
+              style={{
+                width: `${Math.round((completedCount / 20) * 100)}%`,
+                backgroundColor: 'var(--color-coral)',
+                borderRadius: 'var(--radius-full)',
+              }}
+            />
+          </div>
+        </section>
+
+        {/* Modules */}
+        <section className="mb-16">
+          <h3
+            className="text-2xl font-bold mb-6"
+            style={{ fontFamily: 'var(--font-display)', color: 'var(--color-ink)' }}
+          >
+            4 Modules
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {modules.map((mod) => {
+              const done = mod.lessons.filter((id) => isComplete(id)).length;
+              return (
+                <Link key={mod.id} href={`/modules/${mod.id}`}>
+                  <div
+                    className="p-5 transition-all hover:shadow-sm"
+                    style={{
+                      backgroundColor: '#fff',
+                      border: 'var(--border)',
+                      borderRadius: 'var(--radius-lg)',
+                    }}
+                  >
+                    <div className="flex items-center gap-3 mb-2">
+                      <span className="text-2xl">{mod.icon}</span>
+                      <div>
+                        <h4
+                          className="font-semibold text-base"
+                          style={{ fontFamily: 'var(--font-display)', color: 'var(--color-ink)' }}
+                        >
+                          {mod.title}
+                        </h4>
+                        <p className="text-xs" style={{ color: 'var(--color-hint)', fontFamily: 'var(--font-body)' }}>
+                          {mod.lessons.length} lessons · {mod.estimatedTime}
+                        </p>
+                      </div>
+                    </div>
+                    <p className="text-sm mb-3" style={{ color: 'var(--color-secondary)', fontFamily: 'var(--font-body)' }}>
+                      {mod.description}
+                    </p>
+                    <div
+                      className="w-full h-1.5"
+                      style={{ backgroundColor: 'var(--color-sand)', borderRadius: 'var(--radius-full)' }}
+                    >
+                      <div
+                        className="h-full"
+                        style={{
+                          width: `${mod.lessons.length > 0 ? Math.round((done / mod.lessons.length) * 100) : 0}%`,
+                          backgroundColor: 'var(--color-coral)',
+                          borderRadius: 'var(--radius-full)',
+                        }}
+                      />
+                    </div>
+                    <p className="text-xs mt-2" style={{ color: 'var(--color-hint)', fontFamily: 'var(--font-body)' }}>
+                      {done}/{mod.lessons.length} complete
+                    </p>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* Boris quote */}
+        <section
+          className="mb-16 p-6"
+          style={{
+            backgroundColor: 'var(--color-coral-light)',
+            border: '1px solid var(--color-coral)',
+            borderRadius: 'var(--radius-lg)',
+          }}
+        >
+          <p className="text-xs font-semibold mb-2 uppercase tracking-wider" style={{ color: 'var(--color-coral)', fontFamily: 'var(--font-body)' }}>
+            From the creator
+          </p>
+          <blockquote
+            className="text-lg font-semibold mb-3"
+            style={{ fontFamily: 'var(--font-display)', color: 'var(--color-ink)', lineHeight: 1.4 }}
+          >
+            &ldquo;Give Claude a way to verify its work. If Claude has that feedback loop, it will 2-3x the quality of the final result.&rdquo;
+          </blockquote>
+          <p className="text-sm" style={{ color: 'var(--color-coral-dark)', fontFamily: 'var(--font-body)' }}>
+            Boris Cherny — Creator of Claude Code at Anthropic
+          </p>
+        </section>
+
+        {/* All lessons */}
+        <section className="mb-16">
+          <h3
+            className="text-2xl font-bold mb-6"
+            style={{ fontFamily: 'var(--font-display)', color: 'var(--color-ink)' }}
+          >
+            All 20 Lessons
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {lessonSummaries.map((lesson) => {
+              const completed = isComplete(lesson.id);
+              const diffColors: Record<string, { bg: string; text: string }> = {
+                Beginner: { bg: '#e8f5e9', text: '#2e7d32' },
+                Intermediate: { bg: '#fff3e0', text: '#e65100' },
+                Advanced: { bg: '#fce4ec', text: '#c62828' },
+                Expert: { bg: '#f3e5f5', text: '#6a1b9a' },
+              };
+              const dc = diffColors[lesson.difficulty] || diffColors.Beginner;
+              return (
+                <Link key={lesson.id} href={`/lessons/${lesson.id}`}>
+                  <div
+                    className="p-5 transition-all hover:shadow-sm"
+                    style={{
+                      backgroundColor: completed ? 'var(--color-coral-light)' : '#fff',
+                      border: completed ? '1px solid var(--color-coral)' : 'var(--border)',
+                      borderRadius: 'var(--radius-lg)',
+                    }}
+                  >
+                    <div className="flex items-start justify-between mb-3">
+                      <span className="text-3xl">{lesson.icon}</span>
+                      {completed && (
+                        <span
+                          className="w-5 h-5 flex items-center justify-center"
+                          style={{ backgroundColor: 'var(--color-coral)', borderRadius: 'var(--radius-full)' }}
+                        >
+                          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M5 13l4 4L19 7" />
+                          </svg>
+                        </span>
+                      )}
+                    </div>
+                    <h4
+                      className="font-semibold text-base mb-1"
+                      style={{ fontFamily: 'var(--font-display)', color: 'var(--color-ink)' }}
+                    >
+                      {lesson.title}
+                    </h4>
+                    <p className="text-sm mb-3" style={{ color: 'var(--color-secondary)', fontFamily: 'var(--font-body)', lineHeight: 1.5 }}>
+                      {lesson.description}
+                    </p>
+                    <div className="flex items-center justify-between">
+                      <span
+                        className="text-xs font-medium px-2.5 py-0.5"
+                        style={{
+                          backgroundColor: dc.bg,
+                          color: dc.text,
+                          borderRadius: 'var(--radius-full)',
+                          fontFamily: 'var(--font-body)',
+                        }}
+                      >
+                        {lesson.difficulty}
+                      </span>
+                      <span className="text-xs" style={{ color: 'var(--color-hint)', fontFamily: 'var(--font-body)' }}>
+                        {lesson.duration}
+                      </span>
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
+          </div>
+        </section>
+
+        {/* Bottom CTA */}
+        <section
+          className="text-center py-12"
+          style={{ borderTop: 'var(--border)' }}
+        >
+          <h3
+            className="text-2xl font-bold mb-3"
+            style={{ fontFamily: 'var(--font-display)', color: 'var(--color-ink)' }}
+          >
+            Ready to build 10x faster?
+          </h3>
+          <p className="mb-6" style={{ color: 'var(--color-secondary)', fontFamily: 'var(--font-body)' }}>
+            Start with Lesson 1 and master Claude Code.
+          </p>
+          <Link
+            href="/lessons/1"
+            className="inline-block px-8 py-3 text-sm font-semibold"
+            style={{
+              backgroundColor: 'var(--color-coral)',
+              color: '#fff',
+              borderRadius: 'var(--radius-md)',
+              fontFamily: 'var(--font-body)',
+            }}
+          >
+            Begin Your Journey →
           </Link>
-        </div>
+        </section>
       </main>
     </div>
   );
