@@ -148,10 +148,34 @@ In `src/components/lesson/LessonSidebar.tsx`, the lesson button onClick must spe
 ## Content Guidelines
 
 - Source: **official Claude Code docs** (`.claude/docs/official/`) + **Boris Cherny's tips** (`.claude/docs/`)
-- Quiz questions are **AI-generated at runtime** by Haiku, grounded in lesson content. Fallback static questions in `lesson.quiz`.
-- Step enrichment is **AI-generated at runtime** with why/when/mistakes context, grounded in official docs via `src/data/lessonDocs.ts`.
+- Quiz questions are **AI-generated at runtime** by Sonnet, grounded in lesson content. Fallback static questions in `lesson.quiz`. **Lessons with 8+ hand-authored quiz questions skip AI generation entirely.**
+- Step enrichment is **AI-generated at runtime** with why/when/mistakes context, grounded in official docs via `src/data/lessonDocs.ts`. **Steps that already have `tip`/`borisTip`/`officialTip` skip enrichment entirely — no AI call.**
 - Teaching content: **exact commands, full file contents, copy-pasteable code**
 - Boris quotes: `"Quote text." — Boris Cherny`
+- **No redundancy across lessons.** Each topic has ONE canonical lesson. Other lessons may briefly cross-reference but never re-teach. Lesson 12 ("Putting It All Together") is an overview with lesson cross-references, not a re-teaching of previous content.
+
+## AI Model Assignments
+
+| Route | Model | Reason |
+|-------|-------|--------|
+| `/api/quiz/generate` | Sonnet 4.6 | Quiz quality matters; cached after first gen |
+| `/api/quiz/module-exam` | Sonnet 4.6 | Exams gate progression; cached |
+| Capstone evaluator (`src/agents/capstoneEvaluator.ts`) | Sonnet 4.6 | Grading needs judgment |
+| `/api/lesson/enrich` | Haiku 4.5 | Structured JSON fill; cached |
+| `/api/capstone/generate` | Haiku 4.5 | Project brief from template |
+| `/api/lesson/generate` | Haiku 4.5 | Dynamic lesson gen |
+| `/api/lesson/about` | Haiku 4.5 | Course overview |
+| `/api/agents/explain` | Haiku 4.5 | Short per-request rewrite |
+
+## Supabase Cache Fix (April 2026)
+
+The `quiz_cache` and `enrichment_cache` tables had a broken `expires_at` filter: inserts never set `expires_at`, so every `gt('expires_at', now())` lookup returned nothing. Fixed by removing the filter and using `.maybeSingle()`. Existing cached rows now match. To force regeneration, delete the row from the Supabase table.
+
+## Removed Pages (April 2026)
+
+- `/skills` → redirects to `/lesson/9` (Slash Commands is the canonical skills lesson)
+- `/workflow` → redirects to `/lesson/36` (The Complete Workflow in Module 7)
+- Navbar no longer shows Skills or Workflow links
 
 ## Style
 
@@ -198,6 +222,40 @@ This is a **beginner-focused Claude Code training app**. Target audience: develo
 - **Tables:** `quiz_cache`, `enrichment_cache`
 - **RLS:** Public read/write (no auth needed for training app)
 - **Auth:** Disabled in middleware until ready to ship
+
+## Session Learnings (April 2026 — Navigation & UX)
+
+### Back navigation rules
+- **Every page except `/` (landing page) must have a back link** at the top of the content area.
+- Top-level pages (`/dashboard`, `/getting-started`, `/skills`, `/workflow`, `/case-studies`, `/build`, `/community`) use `← Home` linking to `/`.
+- Deep pages (lessons, modules) link to their logical parent: module preview → dashboard, lesson → module, lesson intro → dashboard.
+- The **CC logo** ("Claude Code Training" mark) in custom navbars (dashboard, module preview, lesson intro) is a clickable `<Link href="/">`.
+
+### Lesson step navigation
+- **Step 1 back button** depends on position in module: first lesson in module → `← Back to intro` (links to `/lesson/{id}/intro`), any other lesson → `← Previous lesson` (links to prior lesson in module).
+- Props: `backHref` + `backLabel` on StepLead (replaced old `lessonIntroHref` prop).
+- Module lesson order comes from `mod.lessons` array in `data/modules.ts`.
+
+### AI enrichment "howTo" field
+- `/api/lesson/enrich` now generates a `howTo` field: 2-4 numbered action steps per lesson step.
+- Rendered as a "Try it" card (coral dot eyebrow, ordered list) above the Insights card in `StepInsights`.
+- Cache key bumped to `enrich-v3` in sessionStorage. Supabase rows without `howTo` are fine (field is optional).
+
+### ContentCard component
+- `src/components/ui/ContentCard.tsx` — scenario variant for "In practice" use cases.
+- Uses **avatar photos** from `/images/avatars/avatar-{n}.jpg` (deterministic by name charCode), not initials circles.
+- Keep it compact: 14px quote font, 120px avatar panel, tight padding.
+
+### Chat widget image paste
+- `src/components/chat/ChatWidget.tsx` supports pasting images (⌘V / Ctrl+V).
+- Images are base64-encoded and sent as content blocks to the `/api/chat` route.
+- The API route (`app/api/chat/route.ts`) accepts both string and content-block array formats.
+
+### Data integrity
+- Watch for truncated strings in `data/lessons.ts` — contractions like `Boris's` can lose the name before the apostrophe during edits. Three instances were fixed: "Boris's most important principle", "Boris's rule", "Boris's pattern".
+
+### Floating button overlap
+- The "Ask Claude" FAB at bottom-right overlaps the step navigation buttons. Fixed by adding `marginBottom: 100` to the step nav container in `StepContent.tsx`.
 
 ## Reference Docs
 
