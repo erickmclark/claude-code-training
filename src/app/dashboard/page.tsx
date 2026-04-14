@@ -130,7 +130,7 @@ export default function DashboardPage() {
         className="flex items-center justify-between px-6 py-3.5"
         style={{ borderBottom: 'var(--border)', backgroundColor: '#fff' }}
       >
-        <div className="flex items-center gap-2.5">
+        <Link href="/" className="flex items-center gap-2.5" style={{ textDecoration: 'none' }}>
           {/* Logo mark */}
           <div
             className="flex items-center justify-center"
@@ -157,7 +157,7 @@ export default function DashboardPage() {
           >
             Claude Code Training
           </span>
-        </div>
+        </Link>
 
         <div className="flex items-center gap-6">
           {[
@@ -202,9 +202,14 @@ export default function DashboardPage() {
         </div>
       </nav>
 
+      {/* ── Back Link ── */}
+      <div className="px-6 pt-4" style={{ maxWidth: 1100, margin: '0 auto' }}>
+        <Link href="/" style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: 'var(--color-coral)', textDecoration: 'none' }}>← Home</Link>
+      </div>
+
       {/* ── Hero Strip ── */}
       <section
-        className="px-6 pt-10 pb-6"
+        className="px-6 pt-6 pb-6"
         style={{ maxWidth: 1100, margin: '0 auto' }}
       >
         <p
@@ -374,11 +379,15 @@ export default function DashboardPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {moduleCardData.map(
               ({ mod, unlocked, lessonsDone, isComplete, isInProgress, pct }) => {
-                const accentColor = isComplete
-                  ? '#22c55e'
-                  : isInProgress
-                  ? 'var(--color-coral)'
-                  : 'var(--color-border)';
+                // Module 7 (10x in Practice) gets a purple accent regardless of state
+                const accentColor =
+                  mod.id === 6
+                    ? '#534AB7'
+                    : isComplete
+                    ? '#22c55e'
+                    : isInProgress
+                    ? 'var(--color-coral)'
+                    : 'var(--color-border)';
 
                 const cardStyle = {
                   backgroundColor: isComplete

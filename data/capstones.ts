@@ -32,6 +32,31 @@ export const capstoneProjects: CapstoneProject[] = [
       { criteria: 'Code Quality', description: 'Clean, well-structured code', points: 15 },
       { criteria: 'Deployment', description: 'Successfully deployed to a live URL', points: 20 },
     ],
+    scenario:
+      "**You** are a solo founder launching your first product this week. The designer just handed you a Figma file for a landing page with a hero, features grid, and pricing section. You have **1 hour before the launch tweet goes out**. Your job is to build and ship the page using **3 parallel Claude Code sessions** — one per section — then merge and deploy to Vercel.",
+    persona: {
+      initials: 'SF',
+      role: 'Solo Founder',
+      context: 'First product launch',
+    },
+    timeLimit: '1h',
+    passScore: 70,
+    commonMistakes: [
+      'Building all three sections sequentially instead of in parallel — defeats the whole point.',
+      'Forgetting to agree on shared style tokens before splitting the work, leading to mismatched designs at merge time.',
+      'Skipping the responsive check — reviewers will open your URL on a phone and bounce.',
+      'Deploying to localhost and sending "it\'s live" tweets. Deploy to a real URL (Vercel, Netlify) before claiming done.',
+    ],
+    verificationChecklist: [
+      'Three separate terminal tabs or worktrees visibly running Claude Code at the same time.',
+      'Hero, Features, and Pricing sections each live in their own file or branch before merge.',
+      'The merged page renders correctly on both a 375px (mobile) and 1440px (desktop) viewport.',
+      'Public URL loads in an incognito window in under 3 seconds.',
+      'No console errors on the deployed page.',
+    ],
+    submissionPlaceholder:
+      'Describe how you split the work across the 3 sessions, any merge conflicts you hit, and the final URL. Be specific about which session built which section.',
+    submissionMaxLength: 2000,
   },
   {
     id: 'intermediate-dashboard',
@@ -68,6 +93,33 @@ export const capstoneProjects: CapstoneProject[] = [
       { criteria: 'CI/CD', description: 'Working GitHub Actions pipeline', points: 10 },
       { criteria: 'Deployment', description: 'Live, accessible URL', points: 15 },
     ],
+    scenario:
+      "**You** are the new senior engineer on a 3-person platform team. The team needs an **internal monitoring dashboard** to watch their agent jobs, and they want it ready by **end of day tomorrow — about 2 hours of focused work**. Your job is to plan the architecture in Plan Mode, split the work across **parallel worktrees** for schema, API, and UI, and wire up **verification loops** so broken code never reaches main.",
+    persona: {
+      initials: 'PL',
+      role: 'Senior Platform Engineer',
+      context: '3-person startup team',
+    },
+    timeLimit: '2h',
+    passScore: 75,
+    commonMistakes: [
+      'Jumping to code before writing a plan. A 10-minute Plan Mode session saves 2 hours of rework.',
+      'Putting everything in one worktree and calling it "parallel" — worktrees MUST be separate directories.',
+      "Skipping CLAUDE.md because it's a small project. The next engineer (or future-you) will thank you.",
+      'Writing verification loops that only run manually. They must run automatically on every change.',
+      'Merging the API branch before the schema is done. Foundation always merges first.',
+    ],
+    verificationChecklist: [
+      'Plan Mode transcript saved as markdown in the repo.',
+      'CLAUDE.md at the repo root with build commands, conventions, and any gotchas.',
+      'At least 2 git worktrees visible in `git worktree list` at merge time.',
+      'Test suite runs automatically via a hook or CI after every file edit.',
+      'GitHub Actions workflow file in `.github/workflows/` runs on push.',
+      'Dashboard loads with real or mock data and shows status cards + a chart + a table.',
+    ],
+    submissionPlaceholder:
+      'Walk through your plan-to-ship sequence. Which worktrees did you use? How did you verify? Reference specific files, commit messages, and the CI/CD workflow.',
+    submissionMaxLength: 2000,
   },
   {
     id: 'advanced-saas',
@@ -114,5 +166,35 @@ export const capstoneProjects: CapstoneProject[] = [
       { criteria: 'Demo Video', description: 'Clear, compelling 2-3 minute demo', points: 5 },
       { criteria: 'Deployment', description: 'Production deployment with custom domain', points: 10 },
     ],
+    scenario:
+      "**You** are the lead developer on a SaaS product. The PM just approved a user activity dashboard feature. You have **4 hours** to plan, build, verify, and ship it using the full 10x workflow — Ultraplan, parallel worktrees, cost-optimized model routing, hooks, and a /deploy skill.",
+    persona: {
+      initials: 'EC',
+      role: 'Lead Developer',
+      context: 'SaaS product',
+    },
+    timeLimit: '4h',
+    passScore: 80,
+    commonMistakes: [
+      'Opening Claude Code and typing "build the dashboard" without Ultraplan or Plan Mode. You will rewrite it 3 times.',
+      'Spinning up 5 worktrees but merging them in the wrong order — dependent layers before their foundation.',
+      'Using Opus for everything "just to be safe." Burns the budget in 30 minutes.',
+      'Hooks configured but not tested — the PreToolUse lint hook silently blocks edits you do not notice until 2 hours in.',
+      'Running /deploy but it is not a real skill — just a prompt — so none of the verification steps actually ran.',
+      'Forgetting to check /cost at the end and discovering you spent $34.',
+    ],
+    verificationChecklist: [
+      'Ultraplan or Plan Mode was used before any code was written, and the plan was reviewed.',
+      '3+ worktrees visible in `git worktree list`, merged in foundation-first order.',
+      'CLAUDE.md contains model routing rules (Opus → planning, Sonnet → implementation, Haiku → tests).',
+      'PostToolUse hook auto-formats on every edit.',
+      'Stop hook auto-runs the test suite on every turn end.',
+      'PreToolUse hook blocks commits that fail lint.',
+      '/deploy is a real .claude/skills/deploy/SKILL.md file, not an ad-hoc prompt.',
+      '/cost output at end of session shows under the budget.',
+    ],
+    submissionPlaceholder:
+      "Describe what you built, which tools you used and in what order, how you handled model routing, what your hook pipeline does, and how you verified the output. Be specific — reference actual commands, file names, and /cost output...",
+    submissionMaxLength: 2000,
   },
 ];

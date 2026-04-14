@@ -855,4 +855,81 @@ export const practiceExercises: Record<number, PracticeExercise[]> = {
       codeLanguage: 'markdown',
     },
   ],
+
+  // Lesson 41: The Four Agent Patterns
+  41: [
+    {
+      id: '41-1',
+      title: 'Pick the Right Pattern',
+      description: 'Match a real task to the right canonical agent pattern.',
+      type: 'planning',
+      difficulty: 'intermediate',
+      challenge: 'You need to summarize each of 30 markdown files in /docs and combine them into one report. Name the pattern that fits and explain in one sentence why the alternatives are worse.',
+      inputPlaceholder: 'Pattern: ...\nWhy not chaining: ...\nWhy not routing: ...',
+      hints: [
+        'The 30 summaries are independent of each other',
+        'You only need to merge them at the very end',
+        'Think about whether ordering matters between summaries',
+      ],
+      solution: 'Parallelization. Chaining would force them sequential for no reason. Routing only applies when each task is a different TYPE. Orchestrator-workers also fits but is overkill — the subtask count is fixed and known up front. Spawn 30 subagents in parallel, then a single synthesis step.',
+      successMessage: 'Right call. When subtasks are independent and the count is fixed, parallelization is the simplest pattern that fits.',
+      keywords: ['parallelization', 'parallel', 'independent', 'subagent'],
+    },
+    {
+      id: '41-2',
+      title: 'Build a Triage Subagent',
+      description: 'Write a routing-pattern subagent definition that dispatches user requests to specialists.',
+      type: 'code',
+      difficulty: 'advanced',
+      challenge: 'Write the .claude/agents/triage.md file for a routing pattern. It should send "bug" requests to the debugger subagent, "review" requests to the code-reviewer subagent, and everything else to general-purpose. Include the YAML frontmatter and the system prompt body.',
+      inputPlaceholder: '---\nname: triage\ndescription: ...\ntools: ...\n---\n\nYou are ...',
+      hints: [
+        'Routing subagents only need read tools — they never edit',
+        'The description field tells Claude when to use this subagent',
+        'Be explicit about which keywords map to which specialist',
+      ],
+      solution: '---\nname: triage\ndescription: Inspect a user request and route it to the right specialist subagent.\ntools: Read, Grep\n---\n\nYou are a triage agent. Read the user request and dispatch:\n- "bug" or "error" → call the debugger subagent\n- "review" or "lint" → call the code-reviewer subagent\n- anything else → call the general-purpose subagent\n\nAlways explain your routing decision in one sentence before calling the specialist.',
+      successMessage: 'Solid routing pattern. The triage subagent is small, read-only, and has explicit dispatch rules — no ambiguity about where each request goes.',
+      keywords: ['name', 'description', 'tools', 'triage', 'debugger', 'code-reviewer'],
+      codeLanguage: 'markdown',
+    },
+  ],
+
+  // Lesson 43: Prompt Caching In Practice
+  43: [
+    {
+      id: '43-1',
+      title: 'Diagnose a Cache-Busting Hook',
+      description: 'Read a hook config and explain why it destroys the prompt cache.',
+      type: 'planning',
+      difficulty: 'intermediate',
+      challenge: 'A teammate has a hook that runs `echo "Last updated: $(date)" >> CLAUDE.md` on every UserPromptSubmit. Their /cost shows a 12% cache hit rate after 30 minutes of work. Explain in 2-3 sentences why and propose a fix.',
+      inputPlaceholder: 'Why: ...\nFix: ...',
+      hints: [
+        'CLAUDE.md is part of the cached prefix',
+        'What happens to the cache key when CLAUDE.md changes between requests?',
+        'How can dynamic data be injected per-turn WITHOUT mutating CLAUDE.md?',
+      ],
+      solution: 'Why: CLAUDE.md is cached as part of the static prefix. The hook mutates CLAUDE.md before every turn, which changes the cache key, which forces a fresh-input cost on every request — hence 12% cache hit rate. Fix: remove the mutation. If they want per-turn dynamic data, use a UserPromptSubmit hook that returns hookSpecificOutput.additionalContext instead — that injects data into the current turn without touching the cached prefix.',
+      successMessage: 'Exactly right. CLAUDE.md must be stable within a session. Dynamic data goes through additionalContext, not through file mutation.',
+      keywords: ['cache', 'prefix', 'CLAUDE.md', 'additionalContext', 'cache key'],
+    },
+    {
+      id: '43-2',
+      title: 'Verify Your Own Cache Rate',
+      description: 'Run /cost and identify whether your session is healthy.',
+      type: 'verification',
+      difficulty: 'beginner',
+      challenge: 'You have a 20-minute Claude Code session and run /cost. The output shows: input 84,000 / cached input 12,000 / output 9,400. What is your cache hit rate, and is this session healthy?',
+      inputPlaceholder: 'Cache hit rate: ...\nHealthy?: ...\nDiagnosis: ...',
+      hints: [
+        'Cache hit rate = cached input / (cached input + input)',
+        'Target: > 80% on long sessions',
+        'Below 50% means something is busting the cache',
+      ],
+      solution: 'Cache hit rate: 12,000 / (12,000 + 84,000) = 12.5%. Not healthy — for a 20-minute session this should be >70%. Diagnosis: something is changing the cached prefix on every (or nearly every) turn. Likely culprits: a hook that mutates CLAUDE.md, mid-session CLAUDE.md edits, or DISABLE_PROMPT_CACHING set in the environment.',
+      successMessage: 'Right diagnosis. 12% cache hit rate on a 20-minute session means the cache is being busted constantly — investigate hooks, CLAUDE.md edits, and environment variables.',
+      keywords: ['12.5', '12', 'percent', 'unhealthy', 'busting', 'hook', 'CLAUDE.md'],
+    },
+  ],
 };

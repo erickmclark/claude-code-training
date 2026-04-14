@@ -166,9 +166,8 @@ export default function ModulePage() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 {moduleLessons.map((lesson) => {
                   const done = data.completedLessons.includes(lesson.id);
-                  const lessonDiffStyle = DIFF_STYLE[lesson.difficulty] || DIFF_STYLE.Beginner;
                   return (
-                    <Link key={lesson.id} href={`/lessons/${lesson.id}`} style={{ textDecoration: 'none' }}>
+                    <Link key={lesson.id} href={`/lesson/${lesson.id}`} style={{ textDecoration: 'none' }}>
                       <div style={{
                         display: 'flex', alignItems: 'center', gap: '14px', padding: '14px 16px',
                         borderRadius: 'var(--radius-md)', border: 'var(--border)',
@@ -193,9 +192,6 @@ export default function ModulePage() {
                           </p>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                             <span style={{ fontFamily: 'var(--font-body)', color: 'var(--color-hint)', fontSize: '12px' }}>{lesson.duration}</span>
-                            <span style={{ fontSize: '11px', fontWeight: 600, padding: '1px 8px', borderRadius: 'var(--radius-full)', backgroundColor: lessonDiffStyle.bg, color: lessonDiffStyle.color }}>
-                              {lesson.difficulty}
-                            </span>
                           </div>
                         </div>
 

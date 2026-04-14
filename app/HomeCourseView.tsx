@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { modules, isModuleUnlocked } from '@/data/modules';
 import { getProgress, getCompletedLessonIds } from '@/utils/progress';
@@ -10,13 +10,19 @@ import XPBar from '@/components/XPBar';
 import StreakBadge from '@/components/StreakBadge';
 
 export default function HomeCourseView() {
-  const [data] = useState(() => {
-    if (typeof window === 'undefined') return null;
-    const progress = getProgress();
-    const gam = getGamification();
-    const completedLessons = getCompletedLessonIds();
-    return { progress, gam, completedLessons };
-  });
+  const [data, setData] = useState<{
+    progress: ReturnType<typeof getProgress>;
+    gam: ReturnType<typeof getGamification>;
+    completedLessons: ReturnType<typeof getCompletedLessonIds>;
+  } | null>(null);
+
+  useEffect(() => {
+    setData({
+      progress: getProgress(),
+      gam: getGamification(),
+      completedLessons: getCompletedLessonIds(),
+    });
+  }, []);
 
   if (!data) return null;
 

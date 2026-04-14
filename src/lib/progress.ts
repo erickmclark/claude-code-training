@@ -31,6 +31,12 @@ export type ModuleProgress = {
   completedAt?: string;
 };
 
+export type CapstoneResult = {
+  passed: boolean;
+  score: number;
+  completedAt: string;
+};
+
 export type UserProgress = {
   userId: string;
   userLevel: 'A' | 'B' | 'C' | null;
@@ -50,6 +56,10 @@ export type UserProgress = {
   quizScores: {
     [lessonId: string]: number;
   };
+  // /capstone/[level] widget state — checklist, draft, and final result per tier
+  capstoneChecklists?: { [level: string]: number[] };
+  capstoneDrafts?: { [level: string]: string };
+  capstoneResults?: { [level: string]: CapstoneResult };
   finalTestScore?: number;
   certificateEarned?: boolean;
   createdAt: string;
@@ -59,24 +69,30 @@ export type UserProgress = {
 // ─── Module → Lesson mapping ─────────────────────────────
 
 const MODULE_LESSONS: Record<string, number[]> = {
+  '0': [34, 35],
   '1': [1, 2, 3, 13],
   '2': [4, 5, 6, 14, 20],
-  '3': [9, 10, 11, 19],
+  '3': [9, 10, 11, 19, 27, 28, 29, 30],
   '4': [7, 8, 12, 15, 16, 17, 18],
+  '5': [21, 22, 23, 24, 25, 26, 31, 32, 33],
+  '6': [36, 37, 38, 39, 40],
 };
 
 const MODULE_UNLOCK_ORDER: Record<string, string | null> = {
+  '0': null,
   '1': null,
   '2': '1',
   '3': '2',
   '4': '3',
+  '5': '4',
+  '6': '5',
 };
 
 // ─── Default state ───────────────────────────────────────
 
-function createDefaultProgress(): UserProgress {
+export function createDefaultProgress(): UserProgress {
   return {
-    userId: crypto.randomUUID(),
+    userId: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : 'default',
     userLevel: null,
     currentLessonId: 1,
     currentStep: 0,
@@ -86,13 +102,19 @@ function createDefaultProgress(): UserProgress {
       activeDates: [],
     },
     modules: {
+      '0': { status: 'in-progress', lessonsComplete: [], capstoneComplete: false },
       '1': { status: 'in-progress', lessonsComplete: [], capstoneComplete: false },
       '2': { status: 'locked', lessonsComplete: [], capstoneComplete: false },
       '3': { status: 'locked', lessonsComplete: [], capstoneComplete: false },
       '4': { status: 'locked', lessonsComplete: [], capstoneComplete: false },
+      '5': { status: 'locked', lessonsComplete: [], capstoneComplete: false },
+      '6': { status: 'locked', lessonsComplete: [], capstoneComplete: false },
     },
     lessons: {},
     quizScores: {},
+    capstoneChecklists: {},
+    capstoneDrafts: {},
+    capstoneResults: {},
     certificateEarned: false,
     createdAt: new Date().toISOString(),
     updatedAt: new Date().toISOString(),
@@ -265,6 +287,44 @@ export function completeModule(moduleId: number): void {
   saveProgress(progress);
 }
 
+export function completeModuleCapstone(moduleId: number): void {
+  const progress = getProgress();
+  const key = String(moduleId);
+  const mod = progress.modules[key];
+  if (!mod) {
+    saveProgress(progress);
+    return;
+  }
+
+  mod.capstoneComplete = true;
+
+  const lessonIds = MODULE_LESSONS[key];
+  if (lessonIds) {
+    const allDone = lessonIds.every((id) => mod.lessonsComplete.includes(id));
+    if (allDone) {
+      completeModuleInternal(progress, moduleId);
+    }
+  }
+
+  saveProgress(progress);
+}
+
+export function isModuleCapstoneUnlocked(moduleId: number): boolean {
+  const progress = getProgress();
+  const key = String(moduleId);
+  const mod = progress.modules[key];
+  if (!mod) return false;
+  const lessonIds = MODULE_LESSONS[key];
+  if (!lessonIds) return false;
+  return lessonIds.every((id) => mod.lessonsComplete.includes(id));
+}
+
+export function isModuleCapstoneComplete(moduleId: number): boolean {
+  const progress = getProgress();
+  const key = String(moduleId);
+  return !!progress.modules[key]?.capstoneComplete;
+}
+
 // ─── Quiz helpers ────────────────────────────────────────
 
 export function saveQuizAnswer(
@@ -346,4 +406,46 @@ export function getCurrentLesson(): { lessonId: number; step: number } {
     lessonId: progress.currentLessonId,
     step: progress.currentStep,
   };
+}
+
+// ─── Capstone widget helpers ─────────────────────────────
+
+export function getCapstoneChecklist(level: string): number[] {
+  const progress = getProgress();
+  return progress.capstoneChecklists?.[level] ?? [];
+}
+
+export function toggleCapstoneChecklistItem(level: string, index: number): void {
+  const progress = getProgress();
+  if (!progress.capstoneChecklists) progress.capstoneChecklists = {};
+  const current = progress.capstoneChecklists[level] ?? [];
+  const next = current.includes(index)
+    ? current.filter((i) => i !== index)
+    : [...current, index];
+  progress.capstoneChecklists[level] = next;
+  saveProgress(progress);
+}
+
+export function getCapstoneDraft(level: string): string {
+  const progress = getProgress();
+  return progress.capstoneDrafts?.[level] ?? '';
+}
+
+export function saveCapstoneDraft(level: string, text: string): void {
+  const progress = getProgress();
+  if (!progress.capstoneDrafts) progress.capstoneDrafts = {};
+  progress.capstoneDrafts[level] = text;
+  saveProgress(progress);
+}
+
+export function saveCapstoneResult(level: string, result: CapstoneResult): void {
+  const progress = getProgress();
+  if (!progress.capstoneResults) progress.capstoneResults = {};
+  progress.capstoneResults[level] = result;
+  saveProgress(progress);
+}
+
+export function getCapstoneResult(level: string): CapstoneResult | null {
+  const progress = getProgress();
+  return progress.capstoneResults?.[level] ?? null;
 }

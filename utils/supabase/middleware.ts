@@ -42,11 +42,12 @@ export async function updateSession(request: NextRequest) {
   // API routes are always accessible
   const isApi = request.nextUrl.pathname.startsWith('/api/');
 
-  if (!user && !isPublic && !isApi) {
-    const url = request.nextUrl.clone();
-    url.pathname = '/auth';
-    return NextResponse.redirect(url);
-  }
+  // AUTH DISABLED — uncomment to re-enable when ready
+  // if (!user && !isPublic && !isApi) {
+  //   const url = request.nextUrl.clone();
+  //   url.pathname = '/auth';
+  //   return NextResponse.redirect(url);
+  // }
 
   return supabaseResponse;
 }

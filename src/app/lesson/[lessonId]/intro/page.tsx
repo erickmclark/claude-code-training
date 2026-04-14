@@ -72,10 +72,10 @@ export default function Page({ params }: { params: Promise<{ lessonId: string }>
     <div style={{ backgroundColor: 'var(--color-cream)', minHeight: '100vh' }}>
       {/* Navbar */}
       <nav style={{ backgroundColor: '#fff', borderBottom: 'var(--border)', padding: '0 24px', height: 56, display: 'flex', alignItems: 'center', gap: 32 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
           <div style={{ width: 32, height: 32, borderRadius: 'var(--radius-sm)', backgroundColor: 'var(--color-coral)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontFamily: 'var(--font-display)', fontSize: 13, fontWeight: 700 }}>CC</div>
           <span style={{ fontFamily: 'var(--font-display)', fontSize: 17, fontWeight: 700, color: 'var(--color-ink)' }}>Claude Code Training</span>
-        </div>
+        </Link>
         <div style={{ display: 'flex', gap: 24, marginLeft: 'auto' }}>
           <Link href="/" style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: 'var(--color-body)', textDecoration: 'none' }}>Lessons</Link>
           <Link href="/dashboard" style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: 'var(--color-body)', textDecoration: 'none' }}>Progress</Link>

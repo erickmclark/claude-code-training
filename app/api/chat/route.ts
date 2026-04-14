@@ -14,9 +14,19 @@ interface ChatContext {
   quizQuestions?: string[];
 }
 
+type ImageBlock = {
+  type: 'image';
+  source: { type: 'base64'; media_type: string; data: string };
+};
+type TextBlock = { type: 'text'; text: string };
+type ContentBlock = ImageBlock | TextBlock;
+
 export async function POST(request: NextRequest) {
   const { messages, context } = (await request.json()) as {
-    messages: Array<{ role: 'user' | 'assistant'; content: string }>;
+    messages: Array<{
+      role: 'user' | 'assistant';
+      content: string | ContentBlock[];
+    }>;
     context: ChatContext;
   };
 
@@ -28,12 +38,16 @@ export async function POST(request: NextRequest) {
   }
 
   try {
-    const userMessages = messages.slice(-10).filter((m) => m.content.trim());
+    const userMessages = messages.slice(-10).filter((m) => {
+      if (typeof m.content === 'string') return m.content.trim().length > 0;
+      return m.content.length > 0;
+    });
     const message = await client.messages.create({
       model: 'claude-haiku-4-5-20251001',
       max_tokens: 1024,
       system: buildSystemPrompt(context),
-      messages: userMessages,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      messages: userMessages as any,
     });
 
     const text =

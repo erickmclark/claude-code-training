@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { LessonSummary } from '@/types/lesson';
 import DifficultyBadge from './DifficultyBadge';
@@ -15,10 +15,10 @@ const difficulties = ['All', 'Beginner', 'Intermediate', 'Advanced', 'Expert'] a
 export default function LessonFilter({ lessons }: LessonFilterProps) {
   const [search, setSearch] = useState('');
   const [difficulty, setDifficulty] = useState<string>('All');
-  const [completedIds] = useState<number[]>(() => {
-    if (typeof window === 'undefined') return [];
-    return getCompletedLessonIds();
-  });
+  const [completedIds, setCompletedIds] = useState<number[]>([]);
+  useEffect(() => {
+    setCompletedIds(getCompletedLessonIds());
+  }, []);
 
   const filtered = useMemo(() => {
     return lessons.filter((l) => {

@@ -19,6 +19,10 @@ export interface Step {
   borisTip?: string;
   officialTip?: string;
   lessonIds?: number[];
+  /** Path to an asciinema .cast file relative to public/ for the terminal replay player. */
+  recording?: string;
+  /** Path to a static screenshot PNG relative to public/ for thumbnail/fallback display. */
+  screenshot?: string;
 }
 
 export interface LessonContent {
@@ -104,6 +108,21 @@ export interface Module {
   outcomes?: string[];
   difficulty?: 'Beginner' | 'Intermediate' | 'Advanced';
   tip?: string;
+}
+
+export interface ModuleCapstoneScenario {
+  moduleId: number;
+  title: string;
+  estimatedMinutes: number;
+  situation: string;
+  techniques: string[];
+  tasks: {
+    id: string;
+    description: string;
+    successCriteria: string;
+  }[];
+  deliverable: string;
+  selfCheckQuestions: string[];
 }
 
 export interface BuildStep {

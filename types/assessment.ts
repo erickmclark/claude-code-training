@@ -23,6 +23,20 @@ export interface CapstoneProject {
   learningOutcome: string;
   rubric: RubricItem[];
   techniques: string[];
+  // Fields for the /capstone/[level] widget page. Optional so existing code
+  // that only reads the simple fields keeps working.
+  scenario?: string;                    // Paragraph narrative with **bold** emphasis
+  persona?: {
+    initials: string;                   // e.g., "EC"
+    role: string;                       // e.g., "Lead Developer"
+    context: string;                    // e.g., "SaaS product"
+  };
+  timeLimit?: string;                   // e.g., "4h"
+  passScore?: number;                   // e.g., 80
+  commonMistakes?: string[];            // bullets in the collapsible section
+  verificationChecklist?: string[];     // bullets in the collapsible section
+  submissionPlaceholder?: string;       // textarea placeholder text
+  submissionMaxLength?: number;         // default 2000
 }
 
 export interface RubricItem {

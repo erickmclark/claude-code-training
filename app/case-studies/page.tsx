@@ -17,6 +17,11 @@ export default function CaseStudiesPage() {
 
   return (
     <div className="max-w-6xl mx-auto px-6 py-12">
+      {/* Back Link */}
+      <div style={{ marginBottom: 16 }}>
+        <Link href="/" style={{ fontFamily: 'var(--font-body)', fontSize: 13, color: 'var(--color-coral)', textDecoration: 'none' }}>← Home</Link>
+      </div>
+
       <div className="text-center mb-16">
         <h1 className="text-4xl sm:text-5xl font-bold text-gray-900 dark:text-white mb-4">
           Real Companies, Real Results

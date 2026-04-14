@@ -49,7 +49,7 @@ export default function PracticeExercise({ exercise, onComplete }: PracticeExerc
   };
 
   return (
-    <div className="max-w-2xl">
+    <div className="max-w-4xl">
       {/* Scenario tip */}
       <div
         className="p-4 mb-8"

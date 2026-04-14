@@ -1,30 +1,27 @@
 'use client';
 
-import { use, useState } from 'react';
+import { use, useState, useEffect } from 'react';
 import Link from 'next/link';
-import { getProgress } from '@/src/lib/progress';
+import { getProgress, type UserProgress, createDefaultProgress } from '@/src/lib/progress';
 import { getModuleById, isModuleUnlocked } from '@/data/modules';
 import { getLessonById } from '@/src/data/lessons/index';
 import { lessonSummaries } from '@/data/lessons';
-
-const MODULE_DIFFICULTY: Record<number, string> = {
-  1: 'Beginner',
-  2: 'Intermediate',
-  3: 'Advanced',
-  4: 'Advanced',
-};
+import { moduleCapstones } from '@/data/moduleCapstones';
 
 const MODULE_TIP: Record<number, string> = {
-  1: '"Running 3–5 worktrees simultaneously is the single biggest productivity unlock." — Boris Cherny',
-  2: '"A verification loop is the difference between hoping your code works and knowing it does." — Boris Cherny',
-  3: '"Custom slash commands are your personal force multipliers. Build them once, use them forever." — Boris Cherny',
-  4: '"The real unlock is orchestrating agents that orchestrate agents." — Boris Cherny',
+  1: '"Running 3–5 worktrees simultaneously is the single biggest productivity unlock."',
+  2: '"A verification loop is the difference between hoping your code works and knowing it does."',
+  3: '"Custom slash commands are your personal force multipliers. Build them once, use them forever."',
+  4: '"The real unlock is orchestrating agents that orchestrate agents."',
+  5: '"If you do something more than once a day, turn it into a skill or command."',
+  6: '"The 10x leap is not learning more techniques. It is connecting them into one workflow."',
 };
 
 export default function Page({ params }: { params: Promise<{ moduleId: string }> }) {
   const { moduleId: moduleIdStr } = use(params);
   const moduleId = parseInt(moduleIdStr, 10);
-  const [progress] = useState(() => getProgress());
+  const [progress, setProgress] = useState<UserProgress>(createDefaultProgress);
+  useEffect(() => { setProgress(getProgress()); }, []);
 
   const mod = getModuleById(moduleId);
 
@@ -43,8 +40,9 @@ export default function Page({ params }: { params: Promise<{ moduleId: string }>
     .filter(([, v]) => v.status === 'complete')
     .map(([k]) => parseInt(k, 10));
 
-  const unlocked = isModuleUnlocked(moduleId, completedLessonIds);
-  const modProgress = progress.modules[String(moduleId)];
+  // UNLOCKED — all modules open until ready to ship
+  const unlocked = true;
+  const modProgress = progress.modules?.[String(moduleId)];
   const moduleStatus = modProgress?.status ?? 'locked';
 
   const ctaLabel = moduleStatus === 'complete' ? 'Review Module' : moduleStatus === 'in-progress' ? 'Continue' : 'Start Module';
@@ -55,7 +53,8 @@ export default function Page({ params }: { params: Promise<{ moduleId: string }>
     const lesson = getLessonById(id);
     const isDone = completedLessonIds.includes(id);
     const isCurrent = progress.currentLessonId === id && !isDone;
-    const isLocked = !isDone && !isCurrent && !progress.lessons[String(id)];
+    // All lessons unlocked until ready to ship
+    const isLocked = false;
     return { id, summary, lesson, isDone, isCurrent, isLocked };
   });
 
@@ -66,17 +65,18 @@ export default function Page({ params }: { params: Promise<{ moduleId: string }>
   const modulePct = lessonsCount > 0 ? Math.round((lessonsDoneInModule / lessonsCount) * 100) : 0;
 
   const prevModId = moduleId > 1 ? moduleId - 1 : null;
-  const prevModComplete = prevModId ? progress.modules[String(prevModId)]?.status === 'complete' : true;
-  const showPrereqBanner = !unlocked || (prevModId !== null && !prevModComplete);
+  const prevModComplete = prevModId ? progress.modules?.[String(prevModId)]?.status === 'complete' : true;
+  // No prereq banner while everything is unlocked
+  const showPrereqBanner = false;
 
   return (
     <div style={{ backgroundColor: 'var(--color-cream)', minHeight: '100vh' }}>
       {/* Navbar */}
       <nav style={{ backgroundColor: '#fff', borderBottom: 'var(--border)', padding: '0 24px', height: 56, display: 'flex', alignItems: 'center', gap: 32 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+        <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none' }}>
           <div style={{ width: 32, height: 32, borderRadius: 'var(--radius-sm)', backgroundColor: 'var(--color-coral)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff', fontFamily: 'var(--font-display)', fontSize: 13, fontWeight: 700 }}>CC</div>
           <span style={{ fontFamily: 'var(--font-display)', fontSize: 17, fontWeight: 700, color: 'var(--color-ink)' }}>Claude Code Training</span>
-        </div>
+        </Link>
         <div style={{ display: 'flex', gap: 24, marginLeft: 'auto' }}>
           <Link href="/" style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: 'var(--color-body)', textDecoration: 'none' }}>Lessons</Link>
           <Link href="/dashboard" style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: 'var(--color-coral)', textDecoration: 'none', fontWeight: 600 }}>Progress</Link>
@@ -91,13 +91,13 @@ export default function Page({ params }: { params: Promise<{ moduleId: string }>
         </div>
 
         {/* Hero */}
-        <div style={{ marginBottom: 40 }}>
+        <div className="animate-fade-in" style={{ marginBottom: 40 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
             <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--color-coral)', fontWeight: 600 }}>Module {moduleId}</span>
           </div>
           <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 36, fontWeight: 700, color: 'var(--color-ink)', margin: '0 0 12px 0' }}>{mod.title}</h1>
           <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
-            <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, backgroundColor: 'var(--color-sand)', color: 'var(--color-secondary)', padding: '4px 10px', borderRadius: 'var(--radius-full)', border: 'var(--border)' }}>{MODULE_DIFFICULTY[moduleId]}</span>
+            <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, backgroundColor: 'var(--color-sand)', color: 'var(--color-secondary)', padding: '4px 10px', borderRadius: 'var(--radius-full)', border: 'var(--border)' }}>{mod.difficulty}</span>
             {mod.estimatedTime && (
               <span style={{ fontFamily: 'var(--font-body)', fontSize: 12, backgroundColor: 'var(--color-sand)', color: 'var(--color-secondary)', padding: '4px 10px', borderRadius: 'var(--radius-full)', border: 'var(--border)' }}>{mod.estimatedTime}</span>
             )}
@@ -118,7 +118,7 @@ export default function Page({ params }: { params: Promise<{ moduleId: string }>
           </div>
           {unlocked && (
             <Link
-              href={`/lesson/${firstPendingLessonId}/intro`}
+              href={`/lesson/${firstPendingLessonId}`}
               style={{ display: 'inline-block', backgroundColor: 'var(--color-coral)', color: '#fff', padding: '12px 28px', borderRadius: 'var(--radius-md)', fontFamily: 'var(--font-body)', fontSize: 16, fontWeight: 600, textDecoration: 'none' }}
             >
               {ctaLabel} →
@@ -132,7 +132,7 @@ export default function Page({ params }: { params: Promise<{ moduleId: string }>
           <div style={{ flex: 1, minWidth: 0 }}>
             {/* Outcomes */}
             {(mod.outcomes ?? []).length > 0 && (
-              <div style={{ backgroundColor: '#fff', border: 'var(--border)', borderRadius: 'var(--radius-lg)', padding: 24, marginBottom: 24 }}>
+              <div className="animate-fade-in-up stagger-1" style={{ backgroundColor: '#fff', border: 'var(--border)', borderRadius: 'var(--radius-lg)', padding: 24, marginBottom: 24 }}>
                 <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 700, color: 'var(--color-ink)', margin: '0 0 16px 0' }}>What You&apos;ll Be Able to Do</h2>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                   {(mod.outcomes ?? []).map((outcome, i) => (
@@ -146,10 +146,10 @@ export default function Page({ params }: { params: Promise<{ moduleId: string }>
             )}
 
             {/* Lessons list */}
-            <div style={{ backgroundColor: '#fff', border: 'var(--border)', borderRadius: 'var(--radius-lg)', padding: 24, marginBottom: 24 }}>
+            <div className="animate-fade-in-up stagger-2" style={{ backgroundColor: '#fff', border: 'var(--border)', borderRadius: 'var(--radius-lg)', padding: 24, marginBottom: 24 }}>
               <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 700, color: 'var(--color-ink)', margin: '0 0 16px 0' }}>Lessons</h2>
               <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-                {lessonItems.map(({ id, summary, isDone, isCurrent, isLocked }) => {
+                {lessonItems.map(({ id, summary, isDone, isCurrent, isLocked }, lessonIndex) => {
                   const circleStyle: React.CSSProperties = isDone
                     ? { backgroundColor: 'var(--color-coral)', color: '#fff' }
                     : isCurrent
@@ -159,7 +159,7 @@ export default function Page({ params }: { params: Promise<{ moduleId: string }>
                   const inner = (
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px', borderRadius: 'var(--radius-md)', opacity: isLocked ? 0.5 : 1 }}>
                       <div style={{ width: 32, height: 32, borderRadius: 'var(--radius-full)', flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-body)', fontSize: 13, fontWeight: 600, ...circleStyle }}>
-                        {isDone ? '✓' : id}
+                        {isDone ? '✓' : lessonIndex + 1}
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ fontFamily: 'var(--font-body)', fontSize: 14, fontWeight: 600, color: 'var(--color-ink)' }}>{summary?.title ?? `Lesson ${id}`}</div>
@@ -176,8 +176,8 @@ export default function Page({ params }: { params: Promise<{ moduleId: string }>
                   return isLocked ? (
                     <div key={id}>{inner}</div>
                   ) : (
-                    <Link key={id} href={`/lesson/${id}/intro`} style={{ textDecoration: 'none', display: 'block' }}>
-                      <div style={{ borderRadius: 'var(--radius-md)', transition: 'background 0.15s' }}
+                    <Link key={id} href={`/lesson/${id}`} style={{ textDecoration: 'none', display: 'block' }}>
+                      <div className="card-hover" style={{ borderRadius: 'var(--radius-md)', transition: 'background 0.15s' }}
                         onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = 'var(--color-sand)')}
                         onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}>
                         {inner}
@@ -188,23 +188,57 @@ export default function Page({ params }: { params: Promise<{ moduleId: string }>
               </div>
             </div>
 
-            {/* What's included tiles */}
-            <div style={{ backgroundColor: '#fff', border: 'var(--border)', borderRadius: 'var(--radius-lg)', padding: 24 }}>
-              <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 18, fontWeight: 700, color: 'var(--color-ink)', margin: '0 0 16px 0' }}>What&apos;s Included</h2>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
-                {[
-                  { value: String(lessonsCount), label: 'Lessons' },
-                  { value: String(quizQuestionsTotal), label: 'Quiz Questions' },
-                  { value: String(exercisesTotal), label: 'Exercises' },
-                  { value: '1', label: 'Capstone' },
-                ].map((tile) => (
-                  <div key={tile.label} style={{ border: 'var(--border)', borderRadius: 'var(--radius-md)', padding: '16px 20px' }}>
-                    <div style={{ fontFamily: 'var(--font-display)', fontSize: 28, fontWeight: 700, color: 'var(--color-coral)', lineHeight: 1 }}>{tile.value}</div>
-                    <div style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: 'var(--color-hint)', marginTop: 4 }}>{tile.label}</div>
+            {/* Module Capstone scenario */}
+            {moduleCapstones[moduleId] && (() => {
+              const capstone = moduleCapstones[moduleId];
+              // BUILD MODE: force-unlock the module capstone card. Restore the line below before shipping.
+              const capstoneUnlocked = true;
+              void lessonsDoneInModule;
+              // const capstoneUnlocked = lessonsDoneInModule === lessonsCount && lessonsCount > 0;
+              const capstoneDone = !!modProgress?.capstoneComplete;
+              const lastLessonId = mod.lessons[mod.lessons.length - 1];
+              return (
+                <div className="animate-fade-in-up stagger-3" style={{
+                  border: '1.5px solid var(--color-coral)',
+                  borderRadius: 'var(--radius-lg)',
+                  padding: 24,
+                  marginBottom: 24,
+                  backgroundColor: capstoneUnlocked ? 'var(--color-coral-light)' : 'var(--color-sand)',
+                  opacity: capstoneUnlocked ? 1 : 0.7,
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                    <span style={{ fontSize: 20 }}>🏆</span>
+                    <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--color-coral-dark)', fontWeight: 700 }}>
+                      Module Capstone · {capstone.estimatedMinutes} min
+                    </span>
+                    {capstoneDone && <span style={{ fontFamily: 'var(--font-body)', fontSize: 11, color: '#22c55e', fontWeight: 600, marginLeft: 'auto' }}>✓ Complete</span>}
+                    {!capstoneUnlocked && <span style={{ fontSize: 14, marginLeft: 'auto' }}>🔒</span>}
                   </div>
-                ))}
-              </div>
-            </div>
+                  <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 20, fontWeight: 700, color: 'var(--color-ink)', margin: '0 0 8px 0' }}>{capstone.title}</h2>
+                  <p style={{ fontFamily: 'var(--font-body)', fontSize: 14, color: 'var(--color-body)', lineHeight: 1.6, margin: '0 0 16px 0' }}>
+                    {capstone.situation.length > 220 ? capstone.situation.slice(0, 220) + '…' : capstone.situation}
+                  </p>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 16 }}>
+                    {capstone.techniques.map((t) => (
+                      <span key={t} style={{ fontFamily: 'var(--font-body)', fontSize: 11, padding: '3px 10px', border: '1px solid var(--color-coral)', borderRadius: 'var(--radius-full)', color: 'var(--color-coral-dark)', backgroundColor: '#fff' }}>{t}</span>
+                    ))}
+                  </div>
+                  {capstoneUnlocked ? (
+                    <Link
+                      href={`/lesson/${lastLessonId}?section=capstone`}
+                      style={{ display: 'inline-block', backgroundColor: 'var(--color-coral)', color: '#fff', padding: '10px 22px', borderRadius: 'var(--radius-md)', fontFamily: 'var(--font-body)', fontSize: 14, fontWeight: 600, textDecoration: 'none' }}
+                    >
+                      {capstoneDone ? 'Review Capstone' : 'Start Capstone'} →
+                    </Link>
+                  ) : (
+                    <p style={{ fontFamily: 'var(--font-body)', fontSize: 12, color: 'var(--color-secondary)', margin: 0, fontStyle: 'italic' }}>
+                      Complete all {lessonsCount} lessons to unlock this capstone scenario.
+                    </p>
+                  )}
+                </div>
+              );
+            })()}
+
           </div>
 
           {/* Sidebar */}
@@ -234,7 +268,7 @@ export default function Page({ params }: { params: Promise<{ moduleId: string }>
               </div>
             </div>
 
-            {/* Boris tip */}
+            {/* Module tip */}
             <div style={{ backgroundColor: 'var(--color-coral-light)', border: '1px solid var(--color-coral)', borderRadius: 'var(--radius-md)', padding: 16 }}>
               <p style={{ fontFamily: 'var(--font-body)', fontSize: 12, fontStyle: 'italic', color: 'var(--color-coral-dark)', lineHeight: 1.6, margin: 0 }}>
                 {MODULE_TIP[moduleId] ?? MODULE_TIP[1]}

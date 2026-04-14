@@ -12,3 +12,18 @@ export function getLessonById(id: number) {
 export function getModuleForLesson(lessonId: number) {
   return modules.find((m) => m.lessons.includes(lessonId));
 }
+
+/**
+ * Returns the global lesson number (1-based) across all modules in their declared order.
+ * Returns null if the lesson is not found in any module.
+ */
+export function getGlobalLessonNumber(lessonId: number): number | null {
+  let n = 0;
+  for (const mod of modules) {
+    for (const lid of mod.lessons) {
+      n += 1;
+      if (lid === lessonId) return n;
+    }
+  }
+  return null;
+}

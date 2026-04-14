@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useSyncExternalStore, useState } from 'react';
+import { useSyncExternalStore, useState, useEffect } from 'react';
 import { getCompletedCount } from '@/utils/progress';
 import { checkStreak, getGamification } from '@/utils/gamification';
 import ProgressRing from './ProgressRing';
@@ -19,13 +19,12 @@ export default function Navbar() {
   const completed = useSyncExternalStore(subscribe, getCompletedCount, () => 0);
   const [menuOpen, setMenuOpen] = useState(false);
 
-  // Read gamification once on mount — avoid useSyncExternalStore with side effects
-  const [gam] = useState(() => {
-    if (typeof window === 'undefined') return { xp: 0, streak: 0 };
+  const [gam, setGam] = useState({ xp: 0, streak: 0 });
+  useEffect(() => {
     checkStreak();
     const g = getGamification();
-    return { xp: g.xp, streak: g.streak };
-  });
+    setGam({ xp: g.xp, streak: g.streak });
+  }, []);
   const xp = gam.xp;
   const streak = gam.streak;
 
@@ -33,8 +32,7 @@ export default function Navbar() {
     { href: '/getting-started', label: 'Setup' },
     { href: '/case-studies', label: 'Case Studies' },
     { href: '/build', label: 'Build' },
-    { href: '/skills', label: 'Skills' },
-    { href: '/workflow', label: 'Workflow' },
+    { href: '/community', label: 'Community' },
     { href: '/dashboard', label: 'Dashboard' },
   ];
 

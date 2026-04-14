@@ -18,14 +18,15 @@ interface LessonClientProps {
 
 export default function LessonClient({ lesson, quiz, prevId, nextId }: LessonClientProps) {
   const router = useRouter();
-  const [stepsCompleted, setStepsCompleted] = useState<number[]>(() => {
-    if (typeof window === 'undefined') return [];
-    return getLessonProgress(lesson.id).stepsCompleted;
-  });
-  const [quizCompleted, setQuizCompleted] = useState(() => {
-    if (typeof window === 'undefined') return false;
-    return getLessonProgress(lesson.id).completed;
-  });
+  const [stepsCompleted, setStepsCompleted] = useState<number[]>([]);
+  const [quizCompleted, setQuizCompleted] = useState(false);
+
+  useEffect(() => {
+    const p = getLessonProgress(lesson.id);
+    setStepsCompleted(p.stepsCompleted);
+    setQuizCompleted(p.completed);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lesson.id]);
 
   const handleToggleStep = (index: number) => {
     toggleStepComplete(lesson.id, index);
