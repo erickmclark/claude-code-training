@@ -85,7 +85,7 @@ export async function POST(request: NextRequest) {
   } catch { /* cache miss */ }
 
   const docContent = loadDocExcerpts(lessonId);
-  const extraContent = typeof sourceContent === 'string' ? sourceContent.slice(0, 2000) : '';
+  const extraContent = typeof sourceContent === 'string' ? sourceContent.slice(0, 1000) : '';
 
   const userPrompt = `Write a lesson called "${topic}" for the Claude Code training course.
 
@@ -101,7 +101,7 @@ Write 6 steps that teach this topic. Make it feel like a conversation, not a man
   try {
     const message = await anthropic.messages.create({
       model: 'claude-haiku-4-5-20251001',
-      max_tokens: 4000,
+      max_tokens: 1800,
       system: SYSTEM_PROMPT,
       messages: [{ role: 'user', content: userPrompt }],
     });
@@ -110,9 +110,10 @@ Write 6 steps that teach this topic. Make it feel like a conversation, not a man
     const cleaned = text.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
     const parsed = JSON.parse(cleaned);
 
-    await supabase
+    supabase
       .from('lesson_content_cache')
-      .upsert({ lesson_id: lessonId, steps: parsed.steps }, { onConflict: 'lesson_id' });
+      .upsert({ lesson_id: lessonId, steps: parsed.steps }, { onConflict: 'lesson_id' })
+      .then(() => {});
 
     return NextResponse.json({ steps: parsed.steps });
   } catch (err) {
